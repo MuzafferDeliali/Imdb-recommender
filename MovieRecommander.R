@@ -6,11 +6,13 @@ install.packages("lubridate")
 install.packages("dplyr")
 install.packages("ggthemes")
 install.packages("scales")
+install.packages("matrixStats") # used for matrix Matrix Factorization
 
-library(dplyr)
+library(dplyr) # we used for left_join
 library(stringr)
 library(lubridate)# we used
 library(ggplot2)
+library(matrixStats)
 
 # MovieLens small dataset:
 # https://files.grouplens.org/datasets/movielens/ml-latest-small.zip
@@ -63,7 +65,7 @@ trainSet %>% group_by(userId) %>%
   arrange(n) %>%
   head()
 
-# frequancy of ratings
+# frequency of ratings
 hist(trainSet$rating ,
      main = "Frequancy of ratings" ,
      xlab = "Rates")
@@ -72,5 +74,24 @@ hist(trainSet$rating ,
 trainSet <- trainSet %>% select(userId, movieId, rating, title)
 testSet  <- testSet  %>% select(userId, movieId, rating, title)
 
+head(trainSet)
+model1 <- lm(rating ~ movieId , data  = trainSet)
+model1
+summary(model1)
 
-#select user id 1 and coralation between genres and rating
+predictions <- predict(model1 , testSet)
+predictions
+#select user id 1 and correlation between genres and rating
+
+which(is.na(trainSet)) # are there any na # i delete
+summary(as.vector(as.matrix(trainSet$rating)))
+
+raw_mean <- mean(trainSet$rating, na.rm = TRUE)
+raw_mean
+
+movMat<- svd(trainSet$rating)
+plot()
+rank <- qr(as.matrix(movMat))$rank
+rank
+
+
