@@ -13,12 +13,11 @@ library(stringr)
 library(lubridate)# we used
 library(ggplot2)
 library(matrixStats)
-
+as.data.frame(trainSet)
 # MovieLens small dataset:
 # https://files.grouplens.org/datasets/movielens/ml-latest-small.zip
 
 movielens <- left_join(ratings, movies, by = "movieId")
-View(movielens)
 
 set.seed(100 , sample.kind="Rounding")
 sampleIndex <- sample(1:nrow(movielens) , size = 0.9*nrow(movielens))
@@ -27,16 +26,11 @@ sampleIndex <- sample(1:nrow(movielens) , size = 0.9*nrow(movielens))
 trainSet <- movielens[sampleIndex , ]
 testSet <- movielens[-sampleIndex , ]
 
-# %10 of TrainSet become validateSet 
-valInde <- sample(1:nrow(testSet) , size = 0.1*nrow(trainSet))
-validSet <- movielens[valInde , ]
-
-
 str(trainSet) # column names and classes
 
 dim(trainSet) # 90752 row and 6 column
 head(trainSet)
-trainSet %>% group_by(genres) %>% summarise(n=n()) %>% head() #first 6 genres
+trainSet %>% group_by(genres) %>% summarise(n=n()) #first 6 genres
 
 # movies classified in more than one genre
 tibble(count = str_count(trainSet$genres, fixed("|")), genres = trainSet$genres) %>% 
@@ -57,8 +51,6 @@ hist(visual$year ,
      ylab = "Number of ratings")
 
 
-trainSet %>% group_by(rating) %>% summarize(n=n())
-
 # most active users
 trainSet %>% group_by(userId) %>%
   summarise(n=n()) %>%
@@ -70,9 +62,6 @@ hist(trainSet$rating ,
      main = "Frequancy of ratings" ,
      xlab = "Rates")
 
-#cleaning some values
-trainSet <- trainSet %>% select(userId, movieId, rating, title)
-testSet  <- testSet  %>% select(userId, movieId, rating, title)
 
 head(trainSet)
 model1 <- lm(rating ~ movieId , data  = trainSet)
@@ -81,17 +70,26 @@ summary(model1)
 
 predictions <- predict(model1 , testSet)
 predictions
-#select user id 1 and correlation between genres and rating
 
-which(is.na(trainSet)) # are there any na # i delete
-summary(as.vector(as.matrix(trainSet$rating)))
+# Difference between predictions and real values
+library(caret)
 
-raw_mean <- mean(trainSet$rating, na.rm = TRUE)
-raw_mean
+R2(predictions , testSet$rating)
+RMSE(predictions , testSet$rating)
+MAE(predictions , testSet$rating)
 
-movMat<- svd(trainSet$rating)
-plot()
-rank <- qr(as.matrix(movMat))$rank
-rank
+summary(testSet$rating)
+df_user62 <- trainSet[trainSet$userId == "62" ,]
+summarise(df_user62, group_by(genres))
+gentabl<- table(df_user62$genres)
+popular_genre <- sort(gentabl, decreasing = T)
+popular_genre #
+popular_genre <- as.data.frame(popular_genre)
+pop <- popular_genre[[1,1]]
 
+pop <- movies[movies$genres == pop,]
+pop[sample(nrow(pop), 5), ]
+
+
+rm(utag1)
 
