@@ -89,7 +89,3 @@ pop <- popular_genre[[1,1]]
 
 pop <- movies[movies$genres == pop,]
 pop[sample(nrow(pop), 5), ]
-
-
-rm(utag1)
-
